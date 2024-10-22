@@ -1,6 +1,7 @@
 #!/bin/python
 from time import sleep
 import urllib
+import watchdog
 
 from config import read_config
 from toast import toast_info, toast_warn
