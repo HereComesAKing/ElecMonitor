@@ -11,7 +11,8 @@ config_version = 1
 
 def read_config() -> dict:
     try:
-        config = json.load(open(config_path))
+        with open(config_path, "r") as f:
+            config = json.load(f)
     except FileNotFoundError:
         toast_warn("配置文件不存在，请检查！")
         return None
