@@ -1,0 +1,7 @@
+{
+    "version": 1,
+    "xauat_openid": "",
+    "loop_sleep_time": 1800.0,
+    "waring_fee": 5.0,
+    "enable_info": false
+}
