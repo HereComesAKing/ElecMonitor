@@ -1,9 +1,10 @@
 #!/bin/python
 from time import sleep
 import urllib
-import watchdog
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 
-from config import read_config
+from config import read_config, config_path, working_dir
 from toast import toast_info, toast_warn
 
 
@@ -11,6 +12,41 @@ xauat_openid = ""
 loop_sleep_time = 0
 waring_fee = 0
 enable_info = False
+
+
+def main_read_config() -> None:
+    global xauat_openid, loop_sleep_time, waring_fee, enable_info
+
+    config = read_config()
+    if config == None:
+        toast_warn("配置文件读取失败！")
+        exit(-1)
+
+    try:
+        xauat_openid = config["xauat_openid"]
+        loop_sleep_time = float(config["loop_sleep_time"])
+        waring_fee = float(config["waring_fee"])
+        enable_info = bool(config["enable_info"])
+    except KeyError:
+        toast_warn("配置文件读取错误！")
+        exit(-1)
+
+    if enable_info:
+        toast_info("配置文件读取成功")
+
+
+class ConfigFileHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        if event.src_path == config_path:
+            toast_warn("配置文件被修改，正在重新读取配置文件")
+            main_read_config()
+
+
+def main_config_watch() -> None:
+    handler = ConfigFileHandler()
+    observer = Observer()
+    observer.schedule(handler, path=working_dir, recursive=False)
+    observer.start()
 
 
 def get_money(id: str) -> str:
@@ -59,21 +95,8 @@ def main_loop():
 
 
 if __name__ == "__main__":
-    toast_info("程序启动")
-
-    config = read_config()
-    if config == None:
-        toast_warn("配置文件读取失败！")
-        exit(-1)
-
-    try:
-        xauat_openid = config["xauat_openid"]
-        loop_sleep_time = float(config["loop_sleep_time"])
-        waring_fee = float(config["waring_fee"])
-        enable_info = bool(config["enable_info"])
-    except KeyError:
-        toast_warn("配置文件读取错误！")
-        exit(-1)
+    main_read_config()
+    main_config_watch()
 
     while True:
         main_loop()
